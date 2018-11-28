@@ -2,8 +2,12 @@
 
 namespace app\controllers;
 
+use app\models\Author;
+use app\models\Book;
 use Yii;
+use yii\data\ArrayDataProvider;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
@@ -61,7 +65,47 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $bookModel = new Book();
+        $books = $bookModel::find()->all();
+        $authorModel = new Author();
+        $authors = $authorModel::find()->all();
+
+        $booksData = [];
+        foreach ($books as $book) {
+            $booksData[] = [
+                'id' => $book->id,
+                'name' => $book->name,
+                'author' => implode(', ', ArrayHelper::map($bookModel::findOne($book->id)->bookAuthors, 'name', 'name')),
+            ];
+        }
+        $authorsData = [];
+        foreach ($authors as $author) {
+            $authorsData[] = [
+                'id' => $author->id,
+                'name' => $author->name,
+                'bookCount' => count(ArrayHelper::map($authorModel::findOne($author->id)->bookAuthors, 'name', 'name')),
+            ];
+        }
+
+        $dataProviderBooks = new ArrayDataProvider([
+            'key'=>'id',
+            'allModels' => $booksData,
+            'sort' => [
+                'attributes' => ['id', 'name', 'author'],
+            ],
+        ]);
+        $dataProviderAuthors = new ArrayDataProvider([
+            'key'=>'id',
+            'allModels' => $authorsData,
+            'sort' => [
+                'attributes' => ['id', 'name', 'bookCount'],
+            ],
+        ]);
+
+        return $this->render('index', [
+            'dataProviderBooks' => $dataProviderBooks,
+            'dataProviderAuthors' => $dataProviderAuthors,
+        ]);
     }
 
     /**

@@ -35,13 +35,12 @@ AppAsset::register($this);
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
-    echo Nav::widget([
-        'options' => ['class' => 'navbar-nav navbar-right'],
-        'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
-            ['label' => 'Contact', 'url' => ['/site/contact']],
-            Yii::$app->user->isGuest ? (
+    $items = [['label' => 'Главная', 'url' => ['/site/index']]];
+    if (!Yii::$app->user->isGuest) {
+        $items[] = ['label' => 'Редактировать книги', 'url' => ['/book/index']];
+        $items[] = ['label' => 'Редактировать авторов', 'url' => ['/author/index']];
+    }
+    $items[] = Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
             ) : (
                 '<li>'
@@ -52,8 +51,10 @@ AppAsset::register($this);
                 )
                 . Html::endForm()
                 . '</li>'
-            )
-        ],
+            );
+    echo Nav::widget([
+        'options' => ['class' => 'navbar-nav navbar-right'],
+        'items' => $items,
     ]);
     NavBar::end();
     ?>
